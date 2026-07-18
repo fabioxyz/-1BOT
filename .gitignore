@@ -1,0 +1,21 @@
+# Variáveis de ambiente (NUNCA fazer commit disto!)
+.env
+
+# Dependências
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
