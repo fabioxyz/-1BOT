@@ -121,4 +121,47 @@ describe('Sistema Core - Bloco 4 (Testes 56+)', () => {
       console.error = originalConsoleError;
     }
   });
+
+  test('68. O listener SIGINT deve encerrar a aplicação graciosamente sem throw (regressão)', async () => {
+    let originalExitCode = process.exitCode;
+
+    // Suprimir console logs do shutdown
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+    console.log = () => {};
+    console.error = () => {};
+
+    try {
+      process.env.DISCORD_TOKEN = 'mock-token';
+      process.env.DATABASE_PATH = ':memory:';
+
+      const listenersBefore = new Set(process.listeners('SIGINT'));
+
+      await bootstrap();
+
+      const listenersAfter = new Set(process.listeners('SIGINT'));
+      const newListeners = [...listenersAfter].filter(l => !listenersBefore.has(l));
+
+      assert.equal(newListeners.length, 1, 'Deve registar exatamente um novo listener SIGINT');
+      const registeredListener = newListeners[0];
+
+      await assert.doesNotReject(
+        async () => {
+          const result = registeredListener('SIGINT');
+          if (result instanceof Promise) {
+            await result;
+          }
+        },
+        'O listener SIGINT não deve lançar erro'
+      );
+
+      assert.equal(process.exitCode, 0, 'process.exitCode deve ser 0 após shutdown via SIGINT');
+
+    } finally {
+      process.exitCode = originalExitCode;
+      console.log = originalConsoleLog;
+      console.error = originalConsoleError;
+      resetState();
+    }
+  });
 });

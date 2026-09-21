@@ -10,6 +10,9 @@ let dbInstance;
 let signalsRegistered = false;
 let isShuttingDown = false;
 
+const handleSigint = () => shutdown(0, true);
+const handleSigterm = () => shutdown(0, true);
+
 async function bootstrap(deps = {}) {
   const {
     env = process.env,
@@ -74,15 +77,16 @@ async function bootstrap(deps = {}) {
 
   // Configurar graceful shutdown
   if (!signalsRegistered) {
-    process.once('SIGINT', shutdown);
-    process.once('SIGTERM', shutdown);
+    process.once('SIGINT', handleSigint);
+    process.once('SIGTERM', handleSigterm);
     signalsRegistered = true;
   }
 
   return { client, dbInstance };
 }
 
-async function shutdown(code = 0) {
+async function shutdown(code = 0, setProcessExitCode = (require.main === module)) {
+  const normalizedExitCode = Number.isInteger(code) ? code : 0;
   if (isShuttingDown) return;
   isShuttingDown = true;
   console.log('\n[Process] A encerrar aplicação (Graceful Shutdown)...');
@@ -108,9 +112,9 @@ async function shutdown(code = 0) {
   }
 
   console.log('[Process] Encerramento concluído.');
-  // Em testes, não devemos intervir abruptamente no processo
-  if (require.main === module) {
-    process.exitCode = code;
+
+  if (setProcessExitCode) {
+    process.exitCode = normalizedExitCode;
   }
 }
 
@@ -120,8 +124,8 @@ function resetState() {
   dbInstance = null;
   signalsRegistered = false;
   isShuttingDown = false;
-  process.removeListener('SIGINT', shutdown);
-  process.removeListener('SIGTERM', shutdown);
+  process.removeListener('SIGINT', handleSigint);
+  process.removeListener('SIGTERM', handleSigterm);
 }
 
 async function startApplication(deps = {}) {
