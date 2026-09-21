@@ -14,7 +14,7 @@ module.exports = {
         { name: '📊 Versão', value: '`1.0.0`', inline: true },
         { name: '⚡ Node.js', value: '`v18+`', inline: true },
         { name: '📦 discord.js', value: '`v14.16`', inline: true },
-        { name: '🚀 Funcionalidades ativas', value: '• 🎫 Sistema profissional de tickets (departamentos, canais privados, assunção/libertação, controlo de estados/prioridades, comando `/ticket` com transferência, participantes, auditoria)\n• 🔒 Fecho formal de tickets (arquivamento de canais e painel estático)', inline: false },
+        { name: '🚀 Funcionalidades ativas', value: '• 🎫 Sistema profissional de tickets (departamentos, canais privados, assunção/libertação, controlo de estados/prioridades, comando `/ticket` com transferência, participantes, auditoria)\n• 🔒 Fecho formal de tickets (arquivamento de canais e painel estático)\n• 🔄 Ordenação automática por prioridade (urgent > high > normal > low, desempate por número; canais externos e tickets fechados ignorados)', inline: false },
         { name: '✨ Funcionalidades futuras', value:
           '• ⏱️ Gestão de SLA e métricas de satisfação\n' +
           '• 🧠 IA com RAG (respostas baseadas em documentos)\n' +
@@ -22,7 +22,7 @@ module.exports = {
           '• 🔧 Integrações externas (Notion, Jira, Google Calendar)',
           inline: false
         },
-        { name: 'ℹ️ Sobre', value: 'Este bot é um projeto didático e de demonstração, não se encontrando atualmente em ambiente de produção real.', inline: false }
+        { name: 'ℹ️ Sobre', value: 'Este bot é um projeto didático e de demonstração, não se encontrando atualmente em ambiente de produção real. Conta com 67 testes automatizados para garantir robustez.', inline: false }
       )
       .setFooter({
         text: `Pedido por ${interaction.user.tag}`,

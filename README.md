@@ -19,7 +19,7 @@ O **+1BOT** é um bot de Discord moderno e robusto desenvolvido em **Node.js 18+
 - **Consistência Transacional & Rollback**: Se a criação do canal no Discord falhar, a reserva na base de dados é revertida; se a gravação do ID falhar, o canal é eliminado, evitando tickets órfãos.
 - **Assunção e Libertação (Claim & Release)**: Botões interativos no painel do canal do ticket para membros da equipa assumirem o atendimento com exclusividade (`Assumir`) ou libertarem o ticket (`Libertar`), com permissão para Administradores reatribuírem.
 - **Ciclo de Vida e Controlo de Estados**: Menu suspenso com matriz rigorosa de transições (`Novo` -> `Atribuído` -> `Em Atendimento`, `Aguardando Cliente`, `Resolvido`; reabertura a partir de `Resolvido`), impedindo saltos arbitrários e exigindo responsável atribuído.
-- **Gestão Dinâmica de Prioridades**: Menu suspenso com 4 níveis (`Baixa`, `Normal`, `Alta`, `Urgente`), atualizando o painel visual em tempo real e registando auditoria imediata.
+- **Gestão Dinâmica e Ordenação Automática de Prioridades**: Menu suspenso com 4 níveis (`Baixa`, `Normal`, `Alta`, `Urgente`), atualizando o painel visual e a base de dados. O bot reorganiza automaticamente a posição dos canais no Discord (urgent > high > normal > low, desempate pelo ticket mais antigo), mantendo canais externos intactos e gerindo falhas sem corromper estado.
 - **Transferência entre Departamentos**: Comando `/ticket transferir` com autocomplete dinâmico (excluindo o departamento atual), transferindo o canal para a nova categoria e ajustando cargos de suporte com integridade atómica Discord + SQLite.
 - **Gestão de Participantes Adicionais**: Comandos `/ticket participante-adicionar` e `/ticket participante-remover` para convidar até 10 membros adicionais ao ticket, com concessão/revogação imediata de permissões no canal e rastreio na tabela `ticket_members`.
 - **Painel de Controlo e Consulta de Detalhes**: Comando `/ticket detalhes` para visualização de embed completo com autor, responsável, datas, participantes e histórico recente de eventos; e `/ticket atualizar` para sincronizar e reparar a interface do painel no canal se necessário.
@@ -222,7 +222,7 @@ O projeto utiliza o módulo nativo de testes do Node.js (`node:test` e `node:ass
 npm test
 ```
 
-A suite conta com **55 testes automatizados** e cobre rigorosamente:
+A suite conta com **67 testes automatizados** e cobre rigorosamente:
 1. **Idempotência de Migrações e Schema Evolution**: Execuções repetidas do runner de migrações (`control_message_id`, tabela `ticket_members` com foreign keys e constraints de unicidade).
 2. **CRUD de Configurações**: Persistência e atualização incremental de guild settings.
 3. **Isolamento de Departamentos**: Nomes únicos por servidor e independência total entre guilds.
@@ -232,13 +232,14 @@ A suite conta com **55 testes automatizados** e cobre rigorosamente:
 7. **Consistência Transacional & Compensação**: Reversão segura de reservas, mensagens e canais em caso de falha de criação ou envio inicial.
 8. **Assunção e Libertação de Tickets (Claim/Release)**: Atribuição com exclusividade, idempotência sem eventos duplicados, controlo de permissões de staff/admin e bloqueio de libertação de tickets resolvidos.
 9. **Matriz Estrita de Estados e Transições**: Validação das transições autorizadas, exigência de responsável atribuído e bloqueio de saltos arbitrários.
-10. **Gestão de Prioridades**: Transições de prioridade (`low`, `normal`, `high`, `urgent`), rejeição de valores inválidos e idempotência.
+10. **Gestão e Ordenação de Prioridades**: Transições de prioridade (`low`, `normal`, `high`, `urgent`), validação visual, idempotência e reorganização automática dos canais no Discord baseada em prioridades e tempo (desempate). Preservação de canais não-ticket. Fallback e tratamento de erros do Discord.
 11. **Gestão Atómica de Participantes**: Adição e remoção de até 10 participantes, aplicação/reversão de overwrites no Discord e compensação em falhas de BD.
 12. **Transferência entre Departamentos**: Migração entre categorias, troca de cargos de suporte, preservação de participantes e rollback compensatório em falhas.
-13. **Comando Contextual `/ticket` e Autocomplete**: Serialização dos 5 subcomandos, autocomplete dinâmico excluindo o departamento atual, validação de canal de ticket e controlo de permissões de consulta.
+13. **Comando Contextual `/ticket` e Autocomplete**: Serialização dos 5 subcomandos, autocomplete dinâmico excluindo o departamento atual, validação de canal de ticket, reconciliação de painel/ordem e controlo de permissões de consulta.
 14. **Custom IDs Estritos e Proteção de Erros**: Validação sintática de custom IDs e sanitização de mensagens de erro para o utilizador sem vazar stack traces ou SQL.
 15. **Validação de Emojis e Registo de Comandos**: Suporte a emojis Unicode e custom Discord e serialização de todos os comandos Slash (info, ping, server, tickets, ticket).
 16. **Fecho Seguro de Tickets e Transcrições**: Transição para arquivo read-only, geração de hashes, fallback de mensagens em disco para logs de auditoria e autorizações granulares.
+
 
 ---
 

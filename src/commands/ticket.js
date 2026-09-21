@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const ticketRepository = require('../repositories/ticketRepository');
 const ticketService = require('../services/ticketService');
 const ticketMemberService = require('../services/ticketMemberService');
+const ticketOrderingService = require('../services/ticketOrderingService');
 const { parsePositiveSafeInteger } = require('../utils/ticketCustomIds');
 const logger = require('../utils/logger');
 
@@ -270,7 +271,7 @@ async function handleDetails(interaction) {
 async function handleRefresh(interaction) {
   await interaction.deferReply({ ephemeral: true });
 
-  await ticketService.refreshTicketPanel({
+  const result = await ticketService.refreshTicketPanel({
     channelId: interaction.channelId,
     guildId: interaction.guildId,
     member: interaction.member,
@@ -278,8 +279,22 @@ async function handleRefresh(interaction) {
     channel: interaction.channel,
   });
 
+  let orderMessage = '';
+  const categoryId = interaction.channel?.parentId || result.department?.category_id || result.settings?.ticket_category_id;
+
+  if (categoryId) {
+    const orderRes = await ticketOrderingService.orderCategoryTickets(interaction.guild, categoryId);
+    if (!orderRes.success) {
+      orderMessage = '\n⚠️ O painel foi atualizado, mas não foi possível reorganizar os canais visualmente.';
+    } else if (orderRes.changes > 0) {
+      orderMessage = '\n🔄 A fila de tickets na categoria foi reorganizada.';
+    } else {
+      orderMessage = '\nℹ️ A ordem dos tickets já se encontra correta.';
+    }
+  }
+
   await interaction.editReply({
-    content: '✅ Painel do ticket atualizado com sucesso a partir da base de dados!',
+    content: `✅ Painel do ticket atualizado com sucesso a partir da base de dados!${orderMessage}`,
     allowedMentions: { parse: [] },
   });
 }

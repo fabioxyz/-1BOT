@@ -3,6 +3,7 @@ let defaultTicketRepository = require('../repositories/ticketRepository');
 let defaultTicketService = require('../services/ticketService');
 let defaultTicketCloseService = require('../services/ticketCloseService');
 let defaultPermissionService = require('../services/permissionService');
+let defaultTicketOrderingService = require('../services/ticketOrderingService');
 const { getTicketCreateModal, getTicketCloseModal } = require('../components/tickets/modals');
 const {
   SELECT_DEPARTMENT,
@@ -29,17 +30,19 @@ const {
 module.exports = {
   name: 'interactionCreate',
   once: false,
-  setDependencies({ ticketRepo, ticketSvc, ticketCloseSvc, permSvc }) {
+  setDependencies({ ticketRepo, ticketSvc, ticketCloseSvc, permSvc, ticketOrderingSvc }) {
     if (ticketRepo) defaultTicketRepository = ticketRepo;
     if (ticketSvc) defaultTicketService = ticketSvc;
     if (ticketCloseSvc) defaultTicketCloseService = ticketCloseSvc;
     if (permSvc) defaultPermissionService = permSvc;
+    if (ticketOrderingSvc) defaultTicketOrderingService = ticketOrderingSvc;
   },
   resetDependencies() {
     defaultTicketRepository = require('../repositories/ticketRepository');
     defaultTicketService = require('../services/ticketService');
     defaultTicketCloseService = require('../services/ticketCloseService');
     defaultPermissionService = require('../services/permissionService');
+    defaultTicketOrderingService = require('../services/ticketOrderingService');
   },
 
   async execute(interaction, client) {
@@ -400,15 +403,31 @@ async function handleTicketSelect(interaction) {
       settings: result.settings,
     });
 
+    let orderSuccess = true;
+    let orderChangedMessage = '';
+
+    if (interaction.customId === SELECT_PRIORITY && !result.unchanged) {
+      const categoryId = interaction.channel?.parentId || result.department?.category_id || result.settings?.ticket_category_id;
+      if (categoryId) {
+        const orderRes = await defaultTicketOrderingService.orderCategoryTickets(interaction.guild, categoryId);
+        if (!orderRes.success) {
+          orderSuccess = false;
+          orderChangedMessage = '\n⚠️ A prioridade foi guardada, mas não foi possível reorganizar os canais visualmente. Usa `/ticket atualizar` para tentar novamente.';
+        } else if (orderRes.changes > 0) {
+          orderChangedMessage = '\n🔄 A fila de tickets foi reorganizada.';
+        }
+      }
+    }
+
     if (!visualRes.visualSuccess) {
       await sendComponentResponse(
         interaction,
-        '⚠️ A operação foi guardada na base de dados, mas não foi possível atualizar o painel visual da mensagem.'
+        `⚠️ A operação foi guardada na base de dados, mas não foi possível atualizar o painel visual da mensagem.${orderChangedMessage}`
       );
       return;
     }
 
-    await sendComponentResponse(interaction, successMessage);
+    await sendComponentResponse(interaction, successMessage + orderChangedMessage);
   } catch (error) {
     await handleComponentError(interaction, error);
   }

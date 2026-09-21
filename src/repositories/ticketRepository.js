@@ -710,6 +710,29 @@ class TicketRepository {
     return runPriorityUpdate();
   }
 
+  /**
+   * Obtém todos os tickets ativos e válidos de uma guild para uma determinada categoria,
+   * resolvendo o fallback de departmento -> configurações gerais.
+   * Não retorna tickets closed ou closing.
+   * @param {string} guildId
+   * @param {string} categoryId
+   * @returns {Array<object>}
+   */
+  getActiveTicketsByGuildAndCategory(guildId, categoryId) {
+    const stmt = this.db.prepare(`
+      SELECT
+        t.id, t.ticket_number, t.channel_id, t.priority, t.created_at, t.guild_id
+      FROM tickets t
+      JOIN ticket_departments td ON t.department_id = td.id
+      LEFT JOIN guild_settings gs ON t.guild_id = gs.guild_id
+      WHERE t.guild_id = ?
+        AND t.status NOT IN ('closed', 'closing')
+        AND t.channel_id IS NOT NULL
+        AND COALESCE(td.category_id, gs.ticket_category_id) = ?
+    `);
+    return stmt.all(guildId, categoryId);
+  }
+
   // ============================================
   // AUDITORIA / EVENTOS
   // ============================================
