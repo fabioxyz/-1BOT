@@ -22,7 +22,7 @@ module.exports = {
         { name: '🏷️ Roles', value: `\`${guild.roles.cache.size}\``, inline: true },
         { name: '🚀 Boosts', value: `Nível ${guild.premiumTier} (\`${guild.premiumSubscriptionCount}\`)`, inline: true },
       )
-      .setFooter({ text: `CommunityOps Bot • v1.0.0` })
+      .setFooter({ text: `+1BOT • v1.0.0` })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

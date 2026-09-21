@@ -1,7 +1,7 @@
 const { ActivityType } = require('discord.js');
 
 module.exports = {
-  name: 'ready',
+  name: 'clientReady',
   once: true,
   execute(client) {
     console.log(`🚀 Bot online! Logado como ${client.user.tag}`);
@@ -12,7 +12,7 @@ module.exports = {
     client.user.setActivity('comunidades crescerem', { type: ActivityType.Watching });
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('   CommunityOps Bot - Pronto para servir!');
+    console.log('   +1BOT - Pronto para servir!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   },
 };

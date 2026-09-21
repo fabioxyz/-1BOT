@@ -6,9 +6,9 @@ module.exports = {
     .setDescription('Verifica a latência do bot e da API do Discord'),
 
   async execute(interaction) {
-    const sent = await interaction.reply({ 
-      content: '🏓 A calcular...', 
-      fetchReply: true 
+    const sent = await interaction.reply({
+      content: '🏓 A calcular...',
+      fetchReply: true
     });
 
     const latency = sent.createdTimestamp - interaction.createdTimestamp;

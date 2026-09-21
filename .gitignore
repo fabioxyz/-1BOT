@@ -19,3 +19,12 @@ Thumbs.db
 # Build
 dist/
 build/
+
+# Base de dados SQLite e dados locais
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
