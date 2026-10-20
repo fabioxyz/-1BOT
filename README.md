@@ -2,6 +2,8 @@
 
 A Discord support bot with configurable departments, ticket ownership, priorities, audit logs and HTML transcripts.
 
+**LINK YT:** https://www.youtube.com/watch?v=ZGhy7DLKvuo
+
 **Node.js · discord.js v14 · SQLite · MIT**
 
 [Getting started](#getting-started) · [Discord setup](#configure-your-server) · [Commands](#commands) · [Development](#development) · [Portuguese reference](docs/README.pt-PT.md)
